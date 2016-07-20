@@ -1,3 +1,5 @@
+package model;
+
 import org.joda.time.LocalDate;
 
 public interface Customer {

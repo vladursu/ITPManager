@@ -1,4 +1,8 @@
+package model.impl;
+
 import org.joda.time.LocalDate;
+
+import model.Customer;
 
 public class CustomerImpl implements Customer {
 
