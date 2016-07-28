@@ -4,10 +4,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Properties;
+
+import org.joda.time.LocalDate;
+
+import model.Customer;
+import model.impl.CustomerImpl;
+import services.JdbcService;
+import services.impl.ITPService;
 
 public class Main {
 
@@ -18,12 +24,12 @@ public class Main {
 
 		try {
 
-//			// use commands until GUI is implemented
-//			if (args.length < 1) {
-//				return;
-//			}
-//
-//			cmd = args[0];
+			// use commands until GUI is implemented
+			if (args.length < 1) {
+				return;
+			}
+
+			cmd = args[0];
 
 			Properties prop = new Properties();
 			String driverClass = new String();
@@ -67,35 +73,88 @@ public class Main {
 			}
 
 			// test the connection
-			PreparedStatement stmt = null;
-			ResultSet rs = null;
-			String resultingName = new String();
+			JdbcService itpService = new ITPService(db);
 
-			try {
-				stmt = db.prepareStatement("SELECT name FROM customers WHERE id = ?");
-				stmt.setInt(1, 1);
-				rs = stmt.executeQuery();
-				rs.next();
-				resultingName = rs.getString(1);
-			} catch (SQLException e) {
-				// we have an issue, time to go.
-				throw new RuntimeException(e);
-			} finally {
-				try {
-					if (rs != null && !rs.isClosed()) {
-						rs.close();
-					}
-
-					if (stmt != null && !stmt.isClosed()) {
-						stmt.close();
-					}
-				} catch (SQLException e) {
-					// we have an issue, time to go.
-					throw new RuntimeException(e);
+			if (cmd.equals("ShowCustomers")) {
+				List<Customer> customers = itpService.getCustomers();
+				for (Customer customer : customers) {
+					System.out.println(customer.getId() + "\t" + customer.getName() + "\t" + customer.getCarModel()
+							+ "\t" + customer.getRegistId() + "\t" + customer.getEmail() + "\t" + customer.getPhoneNr()
+							+ "\t" + customer.getITPEndDate() + "\t" + customer.getEmailSent() + "\t"
+							+ customer.getOther());
 				}
+			} else if (cmd.equals("AddCustomer")) {
+				try {
+					// TODO add local checks based on table constraints to
+					// provide specific feedback
+					String name = args[1];
+					String model = args[2];
+					String regId = args[3];
+					String email = args[4];
+					String phoneNo = args[5];
+					String[] dateItems = args[6].split("-");
+					LocalDate itpEndDate = new LocalDate(Integer.parseInt(dateItems[2]), Integer.parseInt(dateItems[1]),
+							Integer.parseInt(dateItems[0]));
+					boolean emailSent = Boolean.parseBoolean(args[7]);
+					String other = args[8];
+
+					Customer customer = new CustomerImpl(-1, name, model, regId, email, phoneNo, itpEndDate, emailSent,
+							other);
+
+					itpService.addCustomer(customer);
+
+					System.out.println("Customer " + name + " added to the database");
+
+				} catch (NumberFormatException e) {
+					System.out.println("Invalid date. Must be of format DD-MM-YYYY. E.g. 02-11-2016");
+				} catch (IllegalArgumentException e) {
+					System.out.println("Illegal argumets. Some of them might be too long");
+				}
+
+			} else if (cmd.equals("DeleteCustomer")) {
+				try {
+					Integer id = Integer.parseInt(args[1]);
+					itpService.deleteCustomer(id);
+					System.out.println("Customer with id: " + id + " has been deleted!");
+				} catch (NumberFormatException e) {
+					System.out.println(args[1] + " is not a valid number");
+				} catch (IllegalArgumentException e) {
+					System.out.println("Invalid id: " + args[1]);
+				}
+			} else if (cmd.equals("UpdateCustomer")) {
+				try {
+					Integer id = Integer.parseInt(args[1]);
+					// This is trickier to test as command input and ultimately
+					// irrelevant when the GUI will be finished.
+					// So I'll be doing hard coded tests
+
+					Customer newCustomer = new CustomerImpl();
+					newCustomer.setName("Update tester");
+					newCustomer.setOther("Double update in one go!");
+					itpService.editCustomer(id, newCustomer);
+					System.out.println("Customer with id: " + id + " has been updated!");
+				} catch (NumberFormatException e) {
+					System.out.println(args[1] + " is not a valid number");
+				} catch (IllegalArgumentException e) {
+					System.out.println(e);
+				}
+			} else if(cmd.equals("Search")) {
+				// these args don't have to be checked because they will be passed by a trusted party.
+				List<Customer> searchResults = itpService.searchForCustomers(args[1], args[2]);
+				if(searchResults.size()==0) {
+					System.out.println("No results found");
+				} else {
+					for (Customer customer : searchResults) {
+						System.out.println(customer.getId() + "\t" + customer.getName() + "\t" + customer.getCarModel()
+								+ "\t" + customer.getRegistId() + "\t" + customer.getEmail() + "\t" + customer.getPhoneNr()
+								+ "\t" + customer.getITPEndDate() + "\t" + customer.getEmailSent() + "\t"
+								+ customer.getOther());
+					}
+				}
+			} else {
+				System.out.println("Invalid command/use");
 			}
 
-			System.out.println("Test name for id = 1: " + resultingName);
 		} finally {
 			// finish up.
 			if (db != null) {

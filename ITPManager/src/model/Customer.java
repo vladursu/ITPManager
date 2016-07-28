@@ -115,7 +115,7 @@ public interface Customer {
 	 *
 	 * @return the status indicator.
 	 */
-	public boolean getEmailSent();
+	public Boolean getEmailSent();
 
 	/**
 	 * Set the customer's state. Either true if they have been notified via
@@ -124,7 +124,7 @@ public interface Customer {
 	 * @param email_sent
 	 *            the status indicator.
 	 */
-	public void setEmailSent(boolean email_sent);
+	public void setEmailSent(Boolean email_sent);
 
 	/**
 	 * Get other comments about this customer

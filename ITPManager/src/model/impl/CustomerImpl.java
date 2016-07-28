@@ -13,11 +13,11 @@ public class CustomerImpl implements Customer {
 	private String email;
 	private String phone_nr;
 	private LocalDate itp_end_date;
-	private boolean email_sent;
+	private Boolean email_sent;
 	private String other;
-	
+
 	public CustomerImpl(Integer id, String name, String car_model, String regist_id, String email, String phone_nr,
-			LocalDate itp_end_date, boolean email_sent, String other) {
+			LocalDate itp_end_date, Boolean email_sent, String other) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -29,8 +29,9 @@ public class CustomerImpl implements Customer {
 		this.email_sent = email_sent;
 		this.other = other;
 	}
-	
-	public CustomerImpl() {}
+
+	public CustomerImpl() {
+	}
 
 	public Integer getId() {
 		return id;
@@ -88,11 +89,11 @@ public class CustomerImpl implements Customer {
 		this.itp_end_date = itp_end_date;
 	}
 
-	public boolean getEmailSent() {
+	public Boolean getEmailSent() {
 		return email_sent;
 	}
 
-	public void setEmailSent(boolean email_sent) {
+	public void setEmailSent(Boolean email_sent) {
 		this.email_sent = email_sent;
 	}
 
@@ -103,5 +104,5 @@ public class CustomerImpl implements Customer {
 	public void setOther(String other) {
 		this.other = other;
 	};
-	
+
 }

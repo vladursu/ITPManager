@@ -40,7 +40,7 @@ public interface JdbcService {
 	 *            modified. Null value for attribute means the attribute must
 	 *            remain unchanged.
 	 */
-	public void editCustomer(Integer id, Customer new_customer);
+	public void editCustomer(Integer id, Customer newCustomer);
 
 	/**
 	 * Search for customers that, for a certain criteria, they have or contain a
@@ -53,5 +53,13 @@ public interface JdbcService {
 	 * @return The list of customers that meet the criteria.
 	 */
 	public List<Customer> searchForCustomers(String attribute, String value);
+
+	/**
+	 * Delete the customer with the given id from the database.
+	 * 
+	 * @param id
+	 *            the ID of the customer to be deleted.
+	 */
+	public void deleteCustomer(Integer id);
 
 }
