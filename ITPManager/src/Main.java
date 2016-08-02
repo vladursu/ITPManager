@@ -13,6 +13,8 @@ import org.joda.time.LocalDate;
 import model.Customer;
 import model.impl.CustomerImpl;
 import services.JdbcService;
+import services.NotificationService;
+import services.impl.EmailService;
 import services.impl.ITPService;
 
 public class Main {
@@ -74,6 +76,7 @@ public class Main {
 
 			// test the connection
 			JdbcService itpService = new ITPService(db);
+			NotificationService emailService = new EmailService();
 
 			if (cmd.equals("ShowCustomers")) {
 				List<Customer> customers = itpService.getCustomers();
@@ -151,6 +154,11 @@ public class Main {
 								+ customer.getOther());
 					}
 				}
+			} else if(cmd.equals("NotifyCustomer")) {
+				
+				Customer customer = itpService.getCustomers().get(1);
+				emailService.notifyCustomer(customer);
+				//TODO change the email_sent parameter to true
 			} else {
 				System.out.println("Invalid command/use");
 			}
