@@ -62,4 +62,37 @@ public interface JdbcService {
 	 */
 	public void deleteCustomer(Integer id);
 
+	/**
+	 * Outputs the customers in a formatted string which makes the table easy to
+	 * read
+	 * 
+	 * @param customers
+	 *            a list of the customers that need to be printed
+	 * @return the formatted string with all the customers' details from the
+	 *         provided list
+	 */
+	public String formattedString(List<Customer> customers);
+
+	/**
+	 * Provides a list of customers that will have their ITP expire soon,
+	 * ordered descending, from closest expiration date to farthest, up to
+	 * 'days' days
+	 * 
+	 * @param days
+	 *            The maximum number of days remaining from current date to
+	 *            expiration date, used to select the customers with the closest
+	 *            ITP end dates
+	 * @return a list of customers ordered descending on ITP end date
+	 */
+	public List<Customer> getNotifCustomers(int days);
+
+	/**
+	 * Updates the email_sent field for the customer with the given id
+	 * 
+	 * @param id
+	 *            the id of the customer to be modified
+	 * @param notified
+	 *            the new state desired for the binary field email_sent
+	 */
+	public void updateNotified(Integer id, Boolean notified);
 }

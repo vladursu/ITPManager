@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import model.Customer;
 import model.impl.CustomerImpl;
@@ -32,7 +34,7 @@ public class ITPService implements JdbcService {
 		List<Customer> customers = new ArrayList<Customer>();
 
 		try {
-			stmt = this.getConnection().prepareStatement("SELECT * FROM customers");
+			stmt = this.getConnection().prepareStatement("SELECT * FROM customers ORDER BY id");
 			rs = stmt.executeQuery();
 
 			while (rs.next()) {
@@ -109,6 +111,31 @@ public class ITPService implements JdbcService {
 
 	}
 
+	public void updateNotified(Integer id, Boolean notified) {
+		PreparedStatement stmt = null;
+		try {
+			stmt = this.getConnection()
+					.prepareStatement("UPDATE customers SET email_sent = ? WHERE id = ?");
+			stmt.setBoolean(1, notified);
+			stmt.setInt(2, id);
+
+			stmt.executeUpdate();
+
+		} catch (SQLException e) {
+			// we have an issue, time to go.
+			throw new IllegalArgumentException(e);
+		} finally {
+			try {
+				if (stmt != null && !stmt.isClosed()) {
+					stmt.close();
+				}
+			} catch (SQLException e) {
+				// we have an issue, time to go.
+				throw new RuntimeException(e);
+			}
+		}
+	}
+	
 	@Override
 	public void editCustomer(Integer id, Customer newCustomer) {
 		PreparedStatement stmt = null;
@@ -217,15 +244,15 @@ public class ITPService implements JdbcService {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		List<Customer> results = new ArrayList<Customer>();
-		
+
 		try {
-			stmt = this.getConnection().prepareStatement("SELECT * FROM customers WHERE "+attribute+" LIKE ?");
+			stmt = this.getConnection().prepareStatement("SELECT * FROM customers WHERE " + attribute + " LIKE ?");
 			// this is safe since attribute will be sent by a trusted party.
-			stmt.setString(1, "%"+value+"%");
+			stmt.setString(1, "%" + value + "%");
 
 			rs = stmt.executeQuery();
-			
-			while(rs.next()) {
+
+			while (rs.next()) {
 				Customer customer = new CustomerImpl();
 
 				customer.setId(rs.getInt(1));
@@ -290,6 +317,118 @@ public class ITPService implements JdbcService {
 			}
 		}
 
+	}
+
+	@Override
+	public String formattedString(List<Customer> customers) {
+		String fullFormatted = "";
+		// Widths for columns with their minimums
+		final int idLen = 5;
+		int nameLen = 4;
+		int carLen = 10;
+		final int regIdLen = 20;
+		int emailLen = 5;
+		final int phoneLen = 13;
+		final int itpLen = 10;
+		final int sentLen = 10;
+		int commLen = 10;
+
+		// Define the lengths of non-final ones
+		for (Customer customer : customers) {
+			if (customer.getName().length() > nameLen) {
+				nameLen = customer.getName().length();
+			}
+			if (customer.getCarModel().length() > carLen) {
+				carLen = customer.getCarModel().length();
+			}
+			if (customer.getEmail().length() > emailLen) {
+				emailLen = customer.getEmail().length();
+			}
+			if (customer.getOther() != null) {
+				if (customer.getOther().length() > commLen) {
+					commLen = customer.getOther().length();
+				}
+			}
+		}
+
+		// Build the full formatted string
+		// Start with column names
+		fullFormatted += String.format(
+				"%-" + idLen + "s | %-" + nameLen + "s | %-" + carLen + "s | %-" + regIdLen + "s | %-" + emailLen
+						+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s \n",
+				"ID", "Name", "Car model", "Registration ID", "Email", "Telephone", "ITP date", "Notified?",
+				"Comments");
+		// Add a line under column names
+		int totalLen = idLen + nameLen + carLen + regIdLen + emailLen + phoneLen + itpLen + sentLen + commLen + 3 * 8;
+		String line = "=";
+		for (int i = 1; i < totalLen; i++) {
+			line += "=";
+		}
+		fullFormatted += line;
+		// Add the rows of customers
+		for (Customer customer : customers) {
+			// Format the ITP end date
+			DateTimeFormatter df = DateTimeFormat.forPattern("dd-MM-yyyy");
+			String itpEndDate = df.print(customer.getITPEndDate());
+
+			fullFormatted += String.format(
+					"\n%-" + idLen + "s | %-" + nameLen + "s | %-" + carLen + "s | %-" + regIdLen + "s | %-" + emailLen
+							+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s ",
+					customer.getId(), customer.getName(), customer.getCarModel(), customer.getRegistId(),
+					customer.getEmail(), customer.getPhoneNr() == null ? "" : customer.getPhoneNr(), itpEndDate,
+					customer.getEmailSent() ? "Yes" : "No", customer.getOther() == null ? "" : customer.getOther());
+		}
+
+		return fullFormatted;
+	}
+
+	public List<Customer> getNotifCustomers(int days) {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<Customer> customers = new ArrayList<Customer>();
+
+		try {
+			stmt = this.getConnection().prepareStatement(
+					"SELECT * FROM customers WHERE (itp_end_date - current_date >= 0) AND (itp_end_date - current_date <= ?) AND email_sent = false ORDER BY itp_end_date");
+			stmt.setInt(1, days);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				Customer customer = new CustomerImpl();
+
+				customer.setId(rs.getInt(1));
+				customer.setName(rs.getString(2));
+				customer.setCarModel(rs.getString(3));
+				customer.setRegistId(rs.getString(4));
+				customer.setEmail(rs.getString(5));
+				customer.setPhoneNr(rs.getString(6));
+				customer.setITPEndDate(new LocalDate(rs.getDate(7)));
+				customer.setEmailSent(rs.getBoolean(8));
+				customer.setOther(rs.getString(9));
+
+				customers.add(customer);
+
+			}
+
+			return customers;
+
+		} catch (SQLException e) {
+			// we have an issue, time to go.
+			throw new RuntimeException(e);
+		} finally {
+			try {
+				if (rs != null && !rs.isClosed()) {
+					rs.close();
+				}
+
+				if (stmt != null && !stmt.isClosed()) {
+					stmt.close();
+				}
+			} catch (SQLException e) {
+				// we have an issue, time to go.
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 }

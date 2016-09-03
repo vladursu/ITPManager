@@ -80,13 +80,13 @@ public class Main {
 
 			if (cmd.equals("ShowCustomers")) {
 				List<Customer> customers = itpService.getCustomers();
-				for (Customer customer : customers) {
-					System.out.println(customer.getId() + "\t" + customer.getName() + "\t" + customer.getCarModel()
-							+ "\t" + customer.getRegistId() + "\t" + customer.getEmail() + "\t" + customer.getPhoneNr()
-							+ "\t" + customer.getITPEndDate() + "\t" + customer.getEmailSent() + "\t"
-							+ customer.getOther());
-				}
-			} else if (cmd.equals("AddCustomer")) {
+				System.out.println(itpService.formattedString(customers));
+			} else if (cmd.equals("ShowNotifCustomers")) {
+				List<Customer> customers = itpService.getNotifCustomers(15);
+				System.out.println(itpService.formattedString(customers));
+			} else if (cmd.equals("UpdateNotified")) {
+				itpService.updateNotified(1,true);
+			}else if (cmd.equals("AddCustomer")) {
 				try {
 					// TODO add local checks based on table constraints to
 					// provide specific feedback
