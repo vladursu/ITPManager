@@ -35,7 +35,7 @@ public class EmailService implements NotificationService {
 		Properties setup = new Properties();
 
 		try {
-			InputStream in = new FileInputStream("lib/smtp.properties");
+			InputStream in = new FileInputStream("lib/config.properties");
 			setup.load(in);
 			in.close();
 		} catch (FileNotFoundException e) {

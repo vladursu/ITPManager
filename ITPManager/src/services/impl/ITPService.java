@@ -323,18 +323,27 @@ public class ITPService implements JdbcService {
 	public String formattedString(List<Customer> customers) {
 		String fullFormatted = "";
 		// Widths for columns with their minimums
-		final int idLen = 5;
+		int idLen = 2;
 		int nameLen = 4;
 		int carLen = 10;
-		final int regIdLen = 20;
+		final int regIdLen = 16;
 		int emailLen = 5;
-		final int phoneLen = 13;
+		int phoneLen = 10;
 		final int itpLen = 10;
-		final int sentLen = 10;
+		final int sentLen = 9;
 		int commLen = 10;
 
 		// Define the lengths of non-final ones
 		for (Customer customer : customers) {
+			if(customer.getId()>=100) {
+				idLen = 3;
+				if(customer.getId()>=1000) {
+					idLen = 4;
+					if(customer.getId()>=10000) {
+						idLen = 5;
+					}
+				}
+			}
 			if (customer.getName().length() > nameLen) {
 				nameLen = customer.getName().length();
 			}
@@ -343,6 +352,9 @@ public class ITPService implements JdbcService {
 			}
 			if (customer.getEmail().length() > emailLen) {
 				emailLen = customer.getEmail().length();
+			}
+			if (customer.getPhoneNr().length() > phoneLen) {
+				phoneLen = customer.getPhoneNr().length();
 			}
 			if (customer.getOther() != null) {
 				if (customer.getOther().length() > commLen) {
@@ -355,7 +367,7 @@ public class ITPService implements JdbcService {
 		// Start with column names
 		fullFormatted += String.format(
 				"%-" + idLen + "s | %-" + nameLen + "s | %-" + carLen + "s | %-" + regIdLen + "s | %-" + emailLen
-						+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s \n",
+						+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s\n",
 				"ID", "Name", "Car model", "Registration ID", "Email", "Telephone", "ITP date", "Notified?",
 				"Comments");
 		// Add a line under column names
@@ -373,7 +385,7 @@ public class ITPService implements JdbcService {
 
 			fullFormatted += String.format(
 					"\n%-" + idLen + "s | %-" + nameLen + "s | %-" + carLen + "s | %-" + regIdLen + "s | %-" + emailLen
-							+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s ",
+							+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s",
 					customer.getId(), customer.getName(), customer.getCarModel(), customer.getRegistId(),
 					customer.getEmail(), customer.getPhoneNr() == null ? "" : customer.getPhoneNr(), itpEndDate,
 					customer.getEmailSent() ? "Yes" : "No", customer.getOther() == null ? "" : customer.getOther());

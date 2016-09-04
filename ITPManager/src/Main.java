@@ -41,7 +41,7 @@ public class Main {
 
 			try {
 
-				InputStream in = new FileInputStream("lib/jdbc.properties");
+				InputStream in = new FileInputStream("lib/config.properties");
 				prop.load(in);
 				in.close();
 
