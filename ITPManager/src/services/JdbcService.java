@@ -15,6 +15,13 @@ public interface JdbcService {
 	public Connection getConnection();
 
 	/**
+	 * Get the customer with the given id.
+	 * @param id the ID of the customer that needs to be fetched from the database
+	 * @return the Customer object consturcted with data from the database
+	 */
+	public Customer getCustomer(Integer id);
+	
+	/**
 	 * Get the list of customers from the database.
 	 * 
 	 * @return the list of customers.

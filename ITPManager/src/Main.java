@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -81,7 +82,16 @@ public class Main {
 			if (cmd.equals("ShowCustomers")) {
 				List<Customer> customers = itpService.getCustomers();
 				System.out.println(itpService.formattedString(customers));
-			} else if (cmd.equals("ShowNotifCustomers")) {
+			} else if (cmd.equals("GetCustomer")) {
+				List<Customer> customers = new ArrayList<Customer>();
+				try {
+				customers.add(itpService.getCustomer(7));
+				System.out.println(itpService.formattedString(customers));
+				} catch(RuntimeException e) {
+					System.out.println("Invalid ID");
+				}
+				
+			}else if (cmd.equals("ShowNotifCustomers")) {
 				List<Customer> customers = itpService.getNotifCustomers(15);
 				System.out.println(itpService.formattedString(customers));
 			} else if (cmd.equals("UpdateNotified")) {

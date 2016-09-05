@@ -27,6 +27,48 @@ public class ITPService implements JdbcService {
 		return this.db;
 	}
 
+	public Customer getCustomer(Integer id) {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Customer customer = new CustomerImpl();
+
+		try {
+			stmt = this.getConnection().prepareStatement("SELECT * FROM customers WHERE id = ?");
+			stmt.setInt(1, id);
+			rs = stmt.executeQuery();
+			rs.next();
+
+			customer.setId(rs.getInt(1));
+			customer.setName(rs.getString(2));
+			customer.setCarModel(rs.getString(3));
+			customer.setRegistId(rs.getString(4));
+			customer.setEmail(rs.getString(5));
+			customer.setPhoneNr(rs.getString(6));
+			customer.setITPEndDate(new LocalDate(rs.getDate(7)));
+			customer.setEmailSent(rs.getBoolean(8));
+			customer.setOther(rs.getString(9));
+
+			return customer;
+
+		} catch (SQLException e) {
+			// we have an issue, time to go.
+			throw new RuntimeException(e);
+		} finally {
+			try {
+				if (rs != null && !rs.isClosed()) {
+					rs.close();
+				}
+
+				if (stmt != null && !stmt.isClosed()) {
+					stmt.close();
+				}
+			} catch (SQLException e) {
+				// we have an issue, time to go.
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
 	@Override
 	public List<Customer> getCustomers() {
 		PreparedStatement stmt = null;
@@ -114,8 +156,7 @@ public class ITPService implements JdbcService {
 	public void updateNotified(Integer id, Boolean notified) {
 		PreparedStatement stmt = null;
 		try {
-			stmt = this.getConnection()
-					.prepareStatement("UPDATE customers SET email_sent = ? WHERE id = ?");
+			stmt = this.getConnection().prepareStatement("UPDATE customers SET email_sent = ? WHERE id = ?");
 			stmt.setBoolean(1, notified);
 			stmt.setInt(2, id);
 
@@ -135,7 +176,7 @@ public class ITPService implements JdbcService {
 			}
 		}
 	}
-	
+
 	@Override
 	public void editCustomer(Integer id, Customer newCustomer) {
 		PreparedStatement stmt = null;
@@ -246,9 +287,21 @@ public class ITPService implements JdbcService {
 		List<Customer> results = new ArrayList<Customer>();
 
 		try {
-			stmt = this.getConnection().prepareStatement("SELECT * FROM customers WHERE " + attribute + " LIKE ?");
-			// this is safe since attribute will be sent by a trusted party.
-			stmt.setString(1, "%" + value + "%");
+			if (attribute.equals("id")) {
+				stmt = this.getConnection().prepareStatement("SELECT * FROM customers WHERE " + attribute + " = ?");
+				int val = 0;
+				try {
+					val = Integer.parseInt(value);
+				} catch (NumberFormatException e) {
+					stmt.setInt(1, val);
+				}
+				if (val != 0) {
+					stmt.setInt(1, val);
+				}
+			} else {
+				stmt = this.getConnection().prepareStatement("SELECT * FROM customers WHERE " + attribute + " LIKE ?");
+				stmt.setString(1, "%" + value + "%");
+			}
 
 			rs = stmt.executeQuery();
 
@@ -335,11 +388,11 @@ public class ITPService implements JdbcService {
 
 		// Define the lengths of non-final ones
 		for (Customer customer : customers) {
-			if(customer.getId()>=100) {
+			if (customer.getId() >= 100) {
 				idLen = 3;
-				if(customer.getId()>=1000) {
+				if (customer.getId() >= 1000) {
 					idLen = 4;
-					if(customer.getId()>=10000) {
+					if (customer.getId() >= 10000) {
 						idLen = 5;
 					}
 				}

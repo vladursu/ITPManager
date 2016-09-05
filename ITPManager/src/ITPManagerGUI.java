@@ -5,6 +5,10 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import model.Customer;
 import services.JdbcService;
 import services.NotificationService;
 import services.impl.EmailService;
@@ -40,6 +44,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 import java.awt.Color;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class ITPManagerGUI extends JFrame {
 
@@ -94,7 +100,6 @@ public class ITPManagerGUI extends JFrame {
 	private Connection db = null;
 	private JdbcService itpService = null;
 	private NotificationService emailService = null;
-	
 
 	/**
 	 * Launch the application.
@@ -121,13 +126,16 @@ public class ITPManagerGUI extends JFrame {
 		setBounds(100, 100, 1280, 600);
 		setTitle("ITP Manager");
 		getContentPane().setLayout(new CardLayout(0, 0));
-		
-		/* Custom made close operation in order to call cleanUp() on any possible exit */
+
+		/*
+		 * Custom made close operation in order to call cleanUp() on any
+		 * possible exit
+		 */
 		WindowAdapter exitListener = new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				int confirm = JOptionPane.showConfirmDialog(getContentPane(), "Close Application?",
-						"Exit Confirmation", JOptionPane.YES_NO_OPTION);
+				int confirm = JOptionPane.showConfirmDialog(getContentPane(), "Close Application?", "Exit Confirmation",
+						JOptionPane.YES_NO_OPTION);
 				if (confirm == 0) {
 					cleanUp();
 					System.exit(0);
@@ -226,23 +234,6 @@ public class ITPManagerGUI extends JFrame {
 					changePanel("welcome");
 					menuBar.setVisible(true);
 				}
-
-				// JLabel lblDialog = new JLabel("Are you sure?");
-				// int action = JOptionPane.showConfirmDialog(loginContentPane,
-				// lblDialog, "Sure?",
-				// JOptionPane.OK_CANCEL_OPTION);
-				// if (action != 0) {
-				// JOptionPane.showMessageDialog(loginContentPane, "Cancel, X or
-				// escape key selected");
-				// } else {
-				// changePanel("welcome");
-				// menuBar.setVisible(true);
-				//
-				// System.out.println("Username: " +
-				// textFieldUsername.getText());
-				// System.out.println("Password: " + (new
-				// String(pwdFieldPassword.getPassword())));
-				// }
 			}
 		});
 
@@ -287,15 +278,15 @@ public class ITPManagerGUI extends JFrame {
 		btnViewDatabase.setBounds(457, 269, 150, 40);
 		welcomeContentPane.add(btnViewDatabase);
 
-		JButton btnSearch = new JButton("Search");
-		btnSearch.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		btnSearch.addActionListener(new ActionListener() {
+		JButton btnQuickSearch = new JButton("Search");
+		btnQuickSearch.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		btnQuickSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				changePanel("dbSearch");
 			}
 		});
-		btnSearch.setBounds(627, 269, 150, 40);
-		welcomeContentPane.add(btnSearch);
+		btnQuickSearch.setBounds(627, 269, 150, 40);
+		welcomeContentPane.add(btnQuickSearch);
 
 		JButton btnAddCustomer = new JButton("Add customer");
 		btnAddCustomer.setFont(new Font("Tahoma", Font.PLAIN, 15));
@@ -334,6 +325,22 @@ public class ITPManagerGUI extends JFrame {
 		dbViewContentPane.add(btnSearchView);
 
 		JButton btnDeleteView = new JButton("Delete");
+		btnDeleteView.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Customer cust = checkID(textFieldCustomerIDView.getText());
+				if (cust != null) {
+					int confirm = JOptionPane.showConfirmDialog(getContentPane(),
+							"Are you sure you want to delete customer " + cust.getName() + " from the database?",
+							"Deletion Confirmation", JOptionPane.YES_NO_OPTION);
+					if (confirm == 0) {
+						itpService.deleteCustomer(cust.getId());
+						JOptionPane.showMessageDialog(getContentPane(),
+								"Customer " + cust.getName() + " has been deleted from the database.");
+						changePanel("dbView");
+					}
+				}
+			}
+		});
 		btnDeleteView.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		btnDeleteView.setBackground(Color.RED);
 		btnDeleteView.setBounds(1134, 487, 120, 40);
@@ -343,7 +350,22 @@ public class ITPManagerGUI extends JFrame {
 		btnEditView.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		btnEditView.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				changePanel("dbEdit");
+				Customer cust = checkID(textFieldCustomerIDView.getText());
+				if (cust != null) {
+					textFieldIdEdit.setText(cust.getId().toString());
+					textFieldNameEdit.setText(cust.getName());
+					textFieldCarModelEdit.setText(cust.getCarModel());
+					textFieldRegIdEdit.setText(cust.getRegistId());
+					textFieldEmailEdit.setText(cust.getEmail());
+					textFieldPhoneEdit.setText(cust.getPhoneNr());
+					DateTimeFormatter df = DateTimeFormat.forPattern("dd-MM-yyyy");
+					String itpEndDate = df.print(cust.getITPEndDate());
+					textFieldItpEdit.setText(itpEndDate);
+					comboBoxNotifiedEdit.setSelectedIndex(cust.getEmailSent() ? 0 : 1);
+					textAreaCommentsEdit.setText(cust.getOther());
+					changePanel("dbEdit");
+				}
+
 			}
 		});
 		btnEditView.setBounds(1004, 487, 120, 40);
@@ -401,12 +423,48 @@ public class ITPManagerGUI extends JFrame {
 		dbSearchContentPane.add(textFieldSearch);
 		textFieldSearch.setColumns(10);
 
-		JButton btnSearch_2 = new JButton("Search");
-		btnSearch_2.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		btnSearch_2.setBounds(1154, 10, 100, 40);
-		dbSearchContentPane.add(btnSearch_2);
+		JButton btnSearch = new JButton("Search");
+		btnSearch.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String attribute = "";
+				String value = textFieldSearch.getText();
+				switch (comboBoxSearch.getSelectedIndex()) {
+				case -1:
+				case 0:
+					attribute = "id";
+					break;
+				case 1:
+					attribute = "name";
+					break;
+				case 2:
+					attribute = "car_model";
+					break;
+				case 3:
+					attribute = "registration_id";
+					break;
+				case 4:
+					attribute = "email";
+					break;
+				case 5:
+					attribute = "phone_number";
+					break;
+				}
+				try {
+					dbSearchTextArea
+							.setText(itpService.formattedString(itpService.searchForCustomers(attribute, value)));
+					changePanel("dbSearch");
+				} catch (Exception e2) {
+					dbSearchTextArea.setText("");
+					changePanel("dbSearch");
+				}
+			}
+		});
+		btnSearch.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		btnSearch.setBounds(1154, 10, 100, 40);
+		dbSearchContentPane.add(btnSearch);
 
 		dbSearchTextArea = new JTextArea();
+		dbSearchTextArea.setFont(new Font("Courier New", Font.PLAIN, 13));
 		dbSearchTextArea.setEditable(false);
 		dbSearchTextArea.setBounds(10, 44, 564, 276);
 
@@ -433,7 +491,6 @@ public class ITPManagerGUI extends JFrame {
 
 		textFieldIdAdd = new JTextField();
 		textFieldIdAdd.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		textFieldIdAdd.setEnabled(false);
 		textFieldIdAdd.setEditable(false);
 		textFieldIdAdd.setBounds(210, 67, 250, 20);
 		dbAddContentPane.add(textFieldIdAdd);
@@ -538,115 +595,114 @@ public class ITPManagerGUI extends JFrame {
 		dbEditContentPane = new JPanel();
 		dbEditContentPane.setLayout(null);
 		dbEditContentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		getContentPane().add(dbEditContentPane, "name_49701330959130");
-		
+		getContentPane().add(dbEditContentPane);
+
 		JLabel lblEditExistingCustomer = new JLabel("Edit existing customer");
 		lblEditExistingCustomer.setHorizontalAlignment(SwingConstants.CENTER);
 		lblEditExistingCustomer.setFont(new Font("Calibri", Font.BOLD, 30));
 		lblEditExistingCustomer.setBounds(10, 11, 1244, 30);
 		dbEditContentPane.add(lblEditExistingCustomer);
-		
+
 		JLabel lblIdEdit = new JLabel("ID");
 		lblIdEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblIdEdit.setBounds(80, 67, 120, 20);
 		dbEditContentPane.add(lblIdEdit);
-		
+
 		textFieldIdEdit = new JTextField();
 		textFieldIdEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		textFieldIdEdit.setEnabled(false);
 		textFieldIdEdit.setEditable(false);
 		textFieldIdEdit.setColumns(10);
 		textFieldIdEdit.setBounds(210, 67, 250, 20);
 		dbEditContentPane.add(textFieldIdEdit);
-		
+
 		JLabel lblNameEdit = new JLabel("Name*");
 		lblNameEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblNameEdit.setBounds(80, 110, 120, 20);
 		dbEditContentPane.add(lblNameEdit);
-		
+
 		textFieldNameEdit = new JTextField();
 		textFieldNameEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		textFieldNameEdit.setColumns(10);
 		textFieldNameEdit.setBounds(210, 110, 250, 20);
 		dbEditContentPane.add(textFieldNameEdit);
-		
+
 		JLabel lblCarModelEdit = new JLabel("Car model*");
 		lblCarModelEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblCarModelEdit.setBounds(80, 149, 120, 20);
 		dbEditContentPane.add(lblCarModelEdit);
-		
+
 		textFieldCarModelEdit = new JTextField();
 		textFieldCarModelEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		textFieldCarModelEdit.setColumns(10);
 		textFieldCarModelEdit.setBounds(210, 149, 250, 20);
 		dbEditContentPane.add(textFieldCarModelEdit);
-		
+
 		JLabel lblRegistrationIdEdit = new JLabel("Registration ID*");
 		lblRegistrationIdEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblRegistrationIdEdit.setBounds(80, 194, 120, 20);
 		dbEditContentPane.add(lblRegistrationIdEdit);
-		
+
 		textFieldRegIdEdit = new JTextField();
 		textFieldRegIdEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		textFieldRegIdEdit.setColumns(10);
 		textFieldRegIdEdit.setBounds(210, 194, 250, 20);
 		dbEditContentPane.add(textFieldRegIdEdit);
-		
+
 		JLabel lblEmailEdit = new JLabel("Email*");
 		lblEmailEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblEmailEdit.setBounds(779, 67, 120, 20);
 		dbEditContentPane.add(lblEmailEdit);
-		
+
 		textFieldEmailEdit = new JTextField();
 		textFieldEmailEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		textFieldEmailEdit.setColumns(10);
 		textFieldEmailEdit.setBounds(909, 70, 276, 20);
 		dbEditContentPane.add(textFieldEmailEdit);
-		
+
 		JLabel lblPhoneNumberEdit = new JLabel("Phone number");
 		lblPhoneNumberEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblPhoneNumberEdit.setBounds(779, 110, 120, 20);
 		dbEditContentPane.add(lblPhoneNumberEdit);
-		
+
 		textFieldPhoneEdit = new JTextField();
 		textFieldPhoneEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		textFieldPhoneEdit.setColumns(10);
 		textFieldPhoneEdit.setBounds(909, 113, 276, 20);
 		dbEditContentPane.add(textFieldPhoneEdit);
-		
+
 		JLabel lblItpEndDateEdit = new JLabel("ITP end date*");
 		lblItpEndDateEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblItpEndDateEdit.setBounds(779, 152, 120, 20);
 		dbEditContentPane.add(lblItpEndDateEdit);
-		
+
 		textFieldItpEdit = new JTextField();
 		textFieldItpEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		textFieldItpEdit.setColumns(10);
 		textFieldItpEdit.setBounds(909, 152, 276, 20);
 		dbEditContentPane.add(textFieldItpEdit);
-		
+
 		JLabel lblNotifiedEdit = new JLabel("Notified?");
 		lblNotifiedEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblNotifiedEdit.setBounds(779, 197, 120, 20);
 		dbEditContentPane.add(lblNotifiedEdit);
-		
+
 		comboBoxNotifiedEdit = new JComboBox();
-		comboBoxNotifiedEdit.setModel(new DefaultComboBoxModel(new String[] {"Yes", "No"}));
+		comboBoxNotifiedEdit.setModel(new DefaultComboBoxModel(new String[] { "Yes", "No" }));
 		comboBoxNotifiedEdit.setSelectedIndex(1);
 		comboBoxNotifiedEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		comboBoxNotifiedEdit.setBounds(909, 197, 75, 20);
 		dbEditContentPane.add(comboBoxNotifiedEdit);
-		
+
 		JLabel lblCommentsEdit = new JLabel("Comments:");
 		lblCommentsEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblCommentsEdit.setBounds(80, 235, 120, 20);
 		dbEditContentPane.add(lblCommentsEdit);
-		
+
 		textAreaCommentsEdit = new JTextArea();
 		textAreaCommentsEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		textAreaCommentsEdit.setBounds(80, 270, 1105, 130);
 		dbEditContentPane.add(textAreaCommentsEdit);
-		
+
 		JButton btnSaveChanges = new JButton("Save changes");
 		btnSaveChanges.setToolTipText("All fields marked with * must be filled in.");
 		btnSaveChanges.setFont(new Font("Tahoma", Font.PLAIN, 15));
@@ -791,8 +847,8 @@ public class ITPManagerGUI extends JFrame {
 		exitMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				int confirm = JOptionPane.showConfirmDialog(getContentPane(), "Close Application?",
-						"Exit Confirmation", JOptionPane.YES_NO_OPTION);
+				int confirm = JOptionPane.showConfirmDialog(getContentPane(), "Close Application?", "Exit Confirmation",
+						JOptionPane.YES_NO_OPTION);
 				if (confirm == 0) {
 					cleanUp();
 					System.exit(0);
@@ -837,7 +893,13 @@ public class ITPManagerGUI extends JFrame {
 			setTitle("ITP Manager - Edit customer");
 		} else if (visiblePanel.equals("notifUp")) {
 			// Populate notifTextArea
-			notifTextArea.setText(itpService.formattedString(itpService.getNotifCustomers(15))); // get the days from the config file
+			notifTextArea.setText(itpService.formattedString(itpService.getNotifCustomers(15))); // get
+																									// the
+																									// days
+																									// from
+																									// the
+																									// config
+																									// file
 			notifContentPane.setVisible(true);
 			setTitle("ITP Manager - Notifications");
 		}
@@ -853,5 +915,31 @@ public class ITPManagerGUI extends JFrame {
 				System.err.println(e.getMessage());
 			}
 		}
+	}
+
+	/**
+	 * Check if a given ID as a string is indeed a valid ID (a number) and a
+	 * customer with that ID exists in the database
+	 * 
+	 * @param id
+	 *            The customer ID to be checked
+	 * @return The Customer object with the given ID
+	 */
+	private Customer checkID(String id) {
+		int custID = -1;
+		Customer cust = null;
+		try {
+			custID = Integer.parseInt(id);
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(getContentPane(), "Invalid customer ID. Must be a number.");
+			return cust;
+		}
+		try {
+			cust = itpService.getCustomer(custID);
+		} catch (RuntimeException e) {
+			JOptionPane.showMessageDialog(getContentPane(),
+					"Customer with ID " + custID + " not found in the database");
+		}
+		return cust;
 	}
 }
