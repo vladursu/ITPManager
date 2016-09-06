@@ -29,6 +29,7 @@ public class EmailService implements NotificationService {
 	private String username = new String();
 	private String password = new String();
 	private String host = new String();
+	private String original = new String();
 
 	public EmailService() {
 
@@ -61,29 +62,29 @@ public class EmailService implements NotificationService {
 
 		session = Session.getDefaultInstance(props);
 
+		try {
+			original = new String(Files.readAllBytes(Paths.get("lib/customer_message.html")), StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	@Override
 	public void notifyCustomer(Customer customer) {
 
 		final String placeholder = "_____";
-		String body = "";
+		String body = original;
 
-		// Create email body
-		try {
-			body = new String(Files.readAllBytes(Paths.get("lib/customer_message.html")), StandardCharsets.UTF_8);
-			body = body.replaceFirst(placeholder, customer.getName());
+		body = body.replaceFirst(placeholder, customer.getName());
 
-			Integer days = customer.getITPEndDate().minusDays(new LocalDate().getDayOfMonth()).getDayOfMonth();
-			body = body.replaceFirst(placeholder, days.toString());
+		Integer days = customer.getITPEndDate().minusDays(new LocalDate().getDayOfMonth()).getDayOfMonth();
+		body = body.replaceFirst(placeholder, days.toString());
 
-			body = body.replaceFirst(placeholder, customer.getITPEndDate().dayOfMonth().getAsText() + "-"
-					+ customer.getITPEndDate().getMonthOfYear() + "-" + customer.getITPEndDate().getYear());
-			body = body.replaceFirst(placeholder, customer.getCarModel());
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		body = body.replaceFirst(placeholder, customer.getITPEndDate().dayOfMonth().getAsText() + "-"
+				+ customer.getITPEndDate().getMonthOfYear() + "-" + customer.getITPEndDate().getYear());
+		body = body.replaceFirst(placeholder, customer.getCarModel());
 
 		// Create and send email
 		try {

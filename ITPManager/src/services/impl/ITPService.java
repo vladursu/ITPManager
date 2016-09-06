@@ -119,6 +119,60 @@ public class ITPService implements JdbcService {
 	}
 
 	@Override
+	public List<Customer> getSortedCustomers(String attribute, String order) {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<Customer> customers = new ArrayList<Customer>();
+
+		try {
+			String sql = "SELECT * FROM customers ORDER BY " + attribute;
+			if (order.equals("desc")) {
+				sql += " DESC";
+			}
+
+			stmt = this.getConnection().prepareStatement(sql);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				Customer customer = new CustomerImpl();
+
+				customer.setId(rs.getInt(1));
+				customer.setName(rs.getString(2));
+				customer.setCarModel(rs.getString(3));
+				customer.setRegistId(rs.getString(4));
+				customer.setEmail(rs.getString(5));
+				customer.setPhoneNr(rs.getString(6));
+				customer.setITPEndDate(new LocalDate(rs.getDate(7)));
+				customer.setEmailSent(rs.getBoolean(8));
+				customer.setOther(rs.getString(9));
+
+				customers.add(customer);
+				System.out.println(customer.getId());
+			}
+
+			return customers;
+
+		} catch (SQLException e) {
+			// we have an issue, time to go.
+			throw new RuntimeException(e);
+		} finally {
+			try {
+				if (rs != null && !rs.isClosed()) {
+					rs.close();
+				}
+
+				if (stmt != null && !stmt.isClosed()) {
+					stmt.close();
+				}
+			} catch (SQLException e) {
+				// we have an issue, time to go.
+				throw new RuntimeException(e);
+			}
+		}
+
+	}
+
+	@Override
 	public void addCustomer(Customer customer) {
 		PreparedStatement stmt = null;
 
@@ -153,12 +207,46 @@ public class ITPService implements JdbcService {
 
 	}
 
+	@Override
 	public void updateNotified(Integer id, Boolean notified) {
 		PreparedStatement stmt = null;
 		try {
 			stmt = this.getConnection().prepareStatement("UPDATE customers SET email_sent = ? WHERE id = ?");
 			stmt.setBoolean(1, notified);
 			stmt.setInt(2, id);
+
+			stmt.executeUpdate();
+
+		} catch (SQLException e) {
+			// we have an issue, time to go.
+			throw new IllegalArgumentException(e);
+		} finally {
+			try {
+				if (stmt != null && !stmt.isClosed()) {
+					stmt.close();
+				}
+			} catch (SQLException e) {
+				// we have an issue, time to go.
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	@Override
+	public void editCustomer(Customer customer) {
+		PreparedStatement stmt = null;
+		try {
+			stmt = this.getConnection().prepareStatement(
+					"UPDATE customers SET name = ?, car_model = ?, registration_id = ?, email = ?, phone_number = ?, itp_end_date = ?, email_sent = ?, other = ? WHERE id = ?");
+			stmt.setString(1, customer.getName());
+			stmt.setString(2, customer.getCarModel());
+			stmt.setString(3, customer.getRegistId());
+			stmt.setString(4, customer.getEmail());
+			stmt.setString(5, customer.getPhoneNr());
+			stmt.setDate(6, java.sql.Date.valueOf(customer.getITPEndDate().toString()));
+			stmt.setBoolean(7, customer.getEmailSent());
+			stmt.setString(8, customer.getOther());
+			stmt.setInt(9, customer.getId());
 
 			stmt.executeUpdate();
 

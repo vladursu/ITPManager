@@ -16,11 +16,14 @@ public interface JdbcService {
 
 	/**
 	 * Get the customer with the given id.
-	 * @param id the ID of the customer that needs to be fetched from the database
+	 * 
+	 * @param id
+	 *            the ID of the customer that needs to be fetched from the
+	 *            database
 	 * @return the Customer object consturcted with data from the database
 	 */
 	public Customer getCustomer(Integer id);
-	
+
 	/**
 	 * Get the list of customers from the database.
 	 * 
@@ -48,6 +51,17 @@ public interface JdbcService {
 	 *            remain unchanged.
 	 */
 	public void editCustomer(Integer id, Customer newCustomer);
+
+	/**
+	 * Edit the customer fully, such that the customer with the ID given inside
+	 * the customer object changes all its values in the database according to
+	 * the fields in the customer object
+	 * 
+	 * @param customer
+	 *            the customer object which holds the ID of the entry that needs
+	 *            updated and all the new values
+	 */
+	public void editCustomer(Customer customer);
 
 	/**
 	 * Search for customers that, for a certain criteria, they have or contain a
@@ -102,4 +116,16 @@ public interface JdbcService {
 	 *            the new state desired for the binary field email_sent
 	 */
 	public void updateNotified(Integer id, Boolean notified);
+
+	/**
+	 * Returns a list of customers sorted by the given attribute and ordered by
+	 * the given order.
+	 * 
+	 * @param attribute
+	 *            the attribute to sort by.
+	 * @param order
+	 *            the order in which to be sorted.
+	 * @return a list of customers sorted as specified by the parameters.
+	 */
+	public List<Customer> getSortedCustomers(String attribute, String order);
 }
