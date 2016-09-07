@@ -18,9 +18,11 @@ import services.JdbcService;
 public class ITPService implements JdbcService {
 
 	private Connection db;
+	private Boolean englishPack;
 
-	public ITPService(Connection db) {
+	public ITPService(Connection db, Boolean englishPack) {
 		this.db = db;
+		this.englishPack = englishPack;
 	}
 
 	public Connection getConnection() {
@@ -466,12 +468,12 @@ public class ITPService implements JdbcService {
 		// Widths for columns with their minimums
 		int idLen = 2;
 		int nameLen = 4;
-		int carLen = 10;
+		int carLen = 9;
 		final int regIdLen = 16;
 		int emailLen = 5;
 		int phoneLen = 10;
 		final int itpLen = 10;
-		final int sentLen = 9;
+		final int sentLen = 10;
 		int commLen = 10;
 
 		// Define the lengths of non-final ones
@@ -509,8 +511,10 @@ public class ITPService implements JdbcService {
 		fullFormatted += String.format(
 				"%-" + idLen + "s | %-" + nameLen + "s | %-" + carLen + "s | %-" + regIdLen + "s | %-" + emailLen
 						+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s\n",
-				"ID", "Name", "Car model", "Registration ID", "Email", "Telephone", "ITP date", "Notified?",
-				"Comments");
+				"ID", englishPack ? "Name" : "Nume", englishPack ? "Car model" : "Masina",
+				englishPack ? "Registration ID" : "Nr inmatriculare", "Email", englishPack ? "Telephone" : "Telefon",
+				englishPack ? "ITP date" : "Data ITP", englishPack ? "Notified?" : "Notificat?",
+				englishPack ? "Comments" : "Comentarii");
 		// Add a line under column names
 		int totalLen = idLen + nameLen + carLen + regIdLen + emailLen + phoneLen + itpLen + sentLen + commLen + 3 * 8;
 		String line = "=";
@@ -529,7 +533,8 @@ public class ITPService implements JdbcService {
 							+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s",
 					customer.getId(), customer.getName(), customer.getCarModel(), customer.getRegistId(),
 					customer.getEmail(), customer.getPhoneNr() == null ? "" : customer.getPhoneNr(), itpEndDate,
-					customer.getEmailSent() ? "Yes" : "No", customer.getOther() == null ? "" : customer.getOther());
+					customer.getEmailSent() ? (englishPack ? "Yes" : "Da") : (englishPack ? "No" : "Nu"),
+					customer.getOther() == null ? "" : customer.getOther());
 		}
 
 		return fullFormatted;
