@@ -136,7 +136,7 @@ public class ITPManagerGUI extends JFrame {
 
 			englishPack = prop.getProperty("GEN.language").equals("English");
 		} catch (IOException e) {
-
+			// IO error message will be triggered on login anyway
 		}
 
 		/* JFrame configuration */
@@ -250,7 +250,7 @@ public class ITPManagerGUI extends JFrame {
 				}
 
 				if (db != null) {
-					itpService = new ITPService(db,englishPack);
+					itpService = new ITPService(db, englishPack);
 					emailService = new EmailService();
 
 					changePanel("welcome");
@@ -457,8 +457,8 @@ public class ITPManagerGUI extends JFrame {
 			sortOptions = new String[] { "ID", "name", "car model", "registration ID", "email", "phone number",
 					"ITP end date", "notified?", "comments" };
 		} else {
-			sortOptions = new String[] { "ID", "nume", "masina", "nr inmatriculare", "email", "telefon",
-					"expira ITP", "notificat?", "comentarii" };
+			sortOptions = new String[] { "ID", "nume", "masina", "nr inmatriculare", "email", "telefon", "expira ITP",
+					"notificat?", "comentarii" };
 		}
 		comboBoxSort.setModel(new DefaultComboBoxModel(sortOptions));
 		comboBoxSort.setSelectedIndex(0);
@@ -816,18 +816,21 @@ public class ITPManagerGUI extends JFrame {
 								newCustomer.setEmailSent(comboBoxNotifiedAdd.getSelectedIndex() == 0 ? true : false);
 								newCustomer.setOther(textAreaCommentsAdd.getText());
 
+								boolean ok = true;
 								try {
 									itpService.addCustomer(newCustomer);
 								} catch (IllegalArgumentException e) {
 									JOptionPane.showMessageDialog(getContentPane(),
 											englishPack ? "Failed to add new customer to the database."
 													: "Nu s-a putut adauga clientul in baza de date (eroare interna).");
+									ok = false;
 								}
-								JOptionPane.showMessageDialog(getContentPane(),
-										englishPack ? "Customer added to the database."
-												: "Clientul a fost adaugat in baza de date.");
-								changePanel("dbView");
-
+								if (ok) {
+									JOptionPane.showMessageDialog(getContentPane(),
+											englishPack ? "Customer added to the database."
+													: "Clientul a fost adaugat in baza de date.");
+									changePanel("dbView");
+								}
 							}
 						}
 					}
@@ -1416,6 +1419,9 @@ public class ITPManagerGUI extends JFrame {
 		}
 	}
 
+	/**
+	 * Method called when closing the application to do any database cleanup
+	 */
 	private void cleanUp() {
 		if (db != null) {
 			try {

@@ -1,0 +1,7 @@
+.\src\ITPManagerGUI.java
+.\src\model\Customer.java
+.\src\model\impl\CustomerImpl.java
+.\src\services\JdbcService.java
+.\src\services\NotificationService.java
+.\src\services\impl\EmailService.java
+.\src\services\impl\ITPService.java

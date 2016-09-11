@@ -149,7 +149,6 @@ public class ITPService implements JdbcService {
 				customer.setOther(rs.getString(9));
 
 				customers.add(customer);
-				System.out.println(customer.getId());
 			}
 
 			return customers;
