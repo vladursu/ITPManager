@@ -250,7 +250,7 @@ public class ITPManagerGUI extends JFrame {
 				}
 
 				if (db != null) {
-					itpService = new ITPService(db, englishPack);
+					itpService = new ITPService(db);
 					emailService = new EmailService();
 
 					changePanel("welcome");
@@ -521,7 +521,7 @@ public class ITPManagerGUI extends JFrame {
 				if (comboBoxOrder.getSelectedIndex() == 1) {
 					order = "desc";
 				}
-				dbViewTextArea.setText(itpService.formattedString(itpService.getSortedCustomers(attribute, order)));
+				dbViewTextArea.setText(formattedString(itpService.getSortedCustomers(attribute, order)));
 			}
 		});
 		btnRefreshView.setFont(new Font("Tahoma", Font.PLAIN, 15));
@@ -595,8 +595,7 @@ public class ITPManagerGUI extends JFrame {
 					break;
 				}
 				try {
-					dbSearchTextArea
-							.setText(itpService.formattedString(itpService.searchForCustomers(attribute, value)));
+					dbSearchTextArea.setText(formattedString(itpService.searchForCustomers(attribute, value)));
 				} catch (Exception e2) {
 					dbSearchTextArea.setText("");
 				}
@@ -1265,7 +1264,7 @@ public class ITPManagerGUI extends JFrame {
 							englishPack ? "Invalid number of days. Must be a number." : "Numar invalid de zile.");
 				}
 				if (days >= 0) {
-					notifTextArea.setText(itpService.formattedString(itpService.getNotifCustomers(days)));
+					notifTextArea.setText(formattedString(itpService.getNotifCustomers(days)));
 				}
 			}
 		});
@@ -1394,7 +1393,7 @@ public class ITPManagerGUI extends JFrame {
 			welcomeContentPane.setVisible(true);
 		} else if (visiblePanel.equals("dbView")) {
 			// Populate dbViewTextArea
-			dbViewTextArea.setText(itpService.formattedString(itpService.getCustomers()));
+			dbViewTextArea.setText(formattedString(itpService.getCustomers()));
 			textFieldCustomerIDView.setText("");
 			dbViewContentPane.setVisible(true);
 			setTitle(englishPack ? "ITP Manager - View database" : "ITP Manager - Baza de date");
@@ -1411,7 +1410,7 @@ public class ITPManagerGUI extends JFrame {
 		} else if (visiblePanel.equals("notifUp")) {
 			// Populate notifTextArea - nr of days should be taken from user
 			// input
-			notifTextArea.setText(itpService.formattedString(itpService.getNotifCustomers(15)));
+			notifTextArea.setText(formattedString(itpService.getNotifCustomers(15)));
 			textFieldCustomerIDNotif.setText("");
 			textFieldDaysNotif.setText("15");
 			notifContentPane.setVisible(true);
@@ -1474,5 +1473,90 @@ public class ITPManagerGUI extends JFrame {
 		textFieldITPAdd.setText("");
 		comboBoxNotifiedAdd.setSelectedIndex(1);
 		textAreaCommentsAdd.setText("");
+	}
+
+	/**
+	 * Outputs the customers in a formatted string which makes the table easy to
+	 * read
+	 * 
+	 * @param customers
+	 *            a list of the customers that need to be printed
+	 * @return the formatted string with all the customers' details from the
+	 *         provided list
+	 */
+	private String formattedString(List<Customer> customers) {
+		String fullFormatted = "";
+		// Widths for columns with their minimums
+		int idLen = 2;
+		int nameLen = 4;
+		int carLen = 9;
+		final int regIdLen = 16;
+		int emailLen = 5;
+		int phoneLen = 10;
+		final int itpLen = 10;
+		final int sentLen = 10;
+		int commLen = 10;
+
+		// Define the lengths of non-final ones
+		for (Customer customer : customers) {
+			if (customer.getId() >= 100) {
+				idLen = 3;
+				if (customer.getId() >= 1000) {
+					idLen = 4;
+					if (customer.getId() >= 10000) {
+						idLen = 5;
+					}
+				}
+			}
+			if (customer.getName().length() > nameLen) {
+				nameLen = customer.getName().length();
+			}
+			if (customer.getCarModel().length() > carLen) {
+				carLen = customer.getCarModel().length();
+			}
+			if (customer.getEmail().length() > emailLen) {
+				emailLen = customer.getEmail().length();
+			}
+			if (customer.getPhoneNr().length() > phoneLen) {
+				phoneLen = customer.getPhoneNr().length();
+			}
+			if (customer.getOther() != null) {
+				if (customer.getOther().length() > commLen) {
+					commLen = customer.getOther().length();
+				}
+			}
+		}
+
+		// Build the full formatted string
+		// Start with column names
+		fullFormatted += String.format(
+				"%-" + idLen + "s | %-" + nameLen + "s | %-" + carLen + "s | %-" + regIdLen + "s | %-" + emailLen
+						+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s\n",
+				"ID", englishPack ? "Name" : "Nume", englishPack ? "Car model" : "Masina",
+				englishPack ? "Registration ID" : "Nr inmatriculare", "Email", englishPack ? "Telephone" : "Telefon",
+				englishPack ? "ITP date" : "Data ITP", englishPack ? "Notified?" : "Notificat?",
+				englishPack ? "Comments" : "Comentarii");
+		// Add a line under column names
+		int totalLen = idLen + nameLen + carLen + regIdLen + emailLen + phoneLen + itpLen + sentLen + commLen + 3 * 8;
+		String line = "=";
+		for (int i = 1; i < totalLen; i++) {
+			line += "=";
+		}
+		fullFormatted += line;
+		// Add the rows of customers
+		for (Customer customer : customers) {
+			// Format the ITP end date
+			DateTimeFormatter df = DateTimeFormat.forPattern("dd-MM-yyyy");
+			String itpEndDate = df.print(customer.getITPEndDate());
+
+			fullFormatted += String.format(
+					"\n%-" + idLen + "s | %-" + nameLen + "s | %-" + carLen + "s | %-" + regIdLen + "s | %-" + emailLen
+							+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s",
+					customer.getId(), customer.getName(), customer.getCarModel(), customer.getRegistId(),
+					customer.getEmail(), customer.getPhoneNr() == null ? "" : customer.getPhoneNr(), itpEndDate,
+					customer.getEmailSent() ? (englishPack ? "Yes" : "Da") : (englishPack ? "No" : "Nu"),
+					customer.getOther() == null ? "" : customer.getOther());
+		}
+		return fullFormatted;
 	}
 }

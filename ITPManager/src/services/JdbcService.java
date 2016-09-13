@@ -40,19 +40,6 @@ public interface JdbcService {
 	public void addCustomer(Customer customer);
 
 	/**
-	 * Edit the customer with given id to have the attributes of the new
-	 * customer.
-	 * 
-	 * @param id
-	 *            the id of the customer to be modified.
-	 * @param new_customer
-	 *            the customer containing the attributes that need to be
-	 *            modified. Null value for attribute means the attribute must
-	 *            remain unchanged.
-	 */
-	public void editCustomer(Integer id, Customer newCustomer);
-
-	/**
 	 * Edit the customer fully, such that the customer with the ID given inside
 	 * the customer object changes all its values in the database according to
 	 * the fields in the customer object
@@ -82,17 +69,6 @@ public interface JdbcService {
 	 *            the ID of the customer to be deleted.
 	 */
 	public void deleteCustomer(Integer id);
-
-	/**
-	 * Outputs the customers in a formatted string which makes the table easy to
-	 * read
-	 * 
-	 * @param customers
-	 *            a list of the customers that need to be printed
-	 * @return the formatted string with all the customers' details from the
-	 *         provided list
-	 */
-	public String formattedString(List<Customer> customers);
 
 	/**
 	 * Provides a list of customers that will have their ITP expire soon,
