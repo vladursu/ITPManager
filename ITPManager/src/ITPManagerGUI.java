@@ -403,7 +403,7 @@ public class ITPManagerGUI extends JFrame {
 					textFieldRegIdEdit.setText(cust.getRegistId());
 					textFieldEmailEdit.setText(cust.getEmail());
 					textFieldPhoneEdit.setText(cust.getPhoneNr());
-					DateTimeFormatter df = DateTimeFormat.forPattern("dd-MM-yyyy");
+					DateTimeFormatter df = DateTimeFormat.forPattern("dd.MM.yyyy");
 					String itpEndDate = df.print(cust.getITPEndDate());
 					textFieldItpEdit.setText(itpEndDate);
 					comboBoxNotifiedEdit.setSelectedIndex(cust.getEmailSent() ? 0 : 1);
@@ -712,7 +712,7 @@ public class ITPManagerGUI extends JFrame {
 		textFieldITPAdd = new JTextField();
 		textFieldITPAdd.setToolTipText(
 				englishPack ? "The date at which the ITP for the customer's car expires. Date format DD-MM-YYYY"
-						: "Data la care expira ITP-ul pentru masina clientului. Format: ZZ-LL-AAAA, e.g. 23-04-2016");
+						: "Data la care expira ITP-ul pentru masina clientului. Format: ZZ.LL.AAAA, e.g. 23.04.2016");
 		textFieldITPAdd.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		textFieldITPAdd.setColumns(10);
 		textFieldITPAdd.setBounds(909, 152, 276, 20);
@@ -787,11 +787,11 @@ public class ITPManagerGUI extends JFrame {
 										: "Comentariile nu pot fi mai lungi de 512 caractere.");
 					} else {
 						String inputDate = textFieldITPAdd.getText();
-						String[] inputDateSegmented = inputDate.split("-");
+						String[] inputDateSegmented = inputDate.split("\\.");
 						if (inputDateSegmented.length != 3) {
 							JOptionPane.showMessageDialog(getContentPane(), englishPack
-									? "ITP end date must be of format DD-MM-YYYY"
-									: "Data la care expira ITP-ul trebuie sa fie in format: ZZ-LL-AAAA, e.g. 23-04-2016");
+									? "ITP end date must be of format DD.MM.YYYY"
+									: "Data la care expira ITP-ul trebuie sa fie in format: ZZ.LL.AAAA, e.g. 23.04.2016");
 						} else {
 							try {
 								newCustomer.setITPEndDate(new LocalDate(Integer.parseInt(inputDateSegmented[2]),
@@ -799,8 +799,8 @@ public class ITPManagerGUI extends JFrame {
 										Integer.parseInt(inputDateSegmented[0])));
 							} catch (NumberFormatException e) {
 								JOptionPane.showMessageDialog(getContentPane(), englishPack
-										? "ITP end date must be of format DD-MM-YYYY"
-										: "Data la care expira ITP-ul trebuie sa fie in format: ZZ-LL-AAAA, e.g. 23-04-2016");
+										? "ITP end date must be of format DD.MM.YYYY"
+										: "Data la care expira ITP-ul trebuie sa fie in format: ZZ.LL.AAAA, e.g. 23.04.2016");
 							} catch (IllegalFieldValueException e) {
 								JOptionPane.showMessageDialog(getContentPane(),
 										englishPack ? "ITP end date must be a valid date."
@@ -941,8 +941,8 @@ public class ITPManagerGUI extends JFrame {
 
 		textFieldItpEdit = new JTextField();
 		textFieldItpEdit.setToolTipText(
-				englishPack ? "The date at which the ITP for the customer's car expires. Date format DD-MM-YYYY"
-						: "Data la care expira ITP-ul pentru masina clientului. Format: ZZ-LL-AAAA, e.g. 23-04-2016");
+				englishPack ? "The date at which the ITP for the customer's car expires. Date format DD.MM.YYYY"
+						: "Data la care expira ITP-ul pentru masina clientului. Format: ZZ.LL.AAAA, e.g. 23.04.2016");
 		textFieldItpEdit.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		textFieldItpEdit.setColumns(10);
 		textFieldItpEdit.setBounds(909, 152, 276, 20);
@@ -1017,20 +1017,26 @@ public class ITPManagerGUI extends JFrame {
 										: "Comentariile nu pot fi mai lungi de 512 caractere.");
 					} else {
 						String inputDate = textFieldItpEdit.getText();
-						String[] inputDateSegmented = inputDate.split("-");
+						String[] inputDateSegmented = inputDate.split("\\.");
 						if (inputDateSegmented.length != 3) {
+							System.out.println("Not 3");
+							System.out.println(inputDate);
+							for (String string : inputDateSegmented) {
+								System.out.println(string);
+							}
 							JOptionPane.showMessageDialog(getContentPane(), englishPack
-									? "ITP end date must be of format DD-MM-YYYY"
-									: "Data la care expira ITP-ul trebuie sa fie in format: ZZ-LL-AAAA, e.g. 23-04-2016");
+									? "ITP end date must be of format DD.MM.YYYY"
+									: "Data la care expira ITP-ul trebuie sa fie in format: ZZ.LL.AAAA, e.g. 23.04.2016");
 						} else {
 							try {
 								newCustomer.setITPEndDate(new LocalDate(Integer.parseInt(inputDateSegmented[2]),
 										Integer.parseInt(inputDateSegmented[1]),
 										Integer.parseInt(inputDateSegmented[0])));
 							} catch (NumberFormatException e) {
+								System.out.println("Bad date");
 								JOptionPane.showMessageDialog(getContentPane(), englishPack
-										? "ITP end date must be of format DD-MM-YYYY"
-										: "Data la care expira ITP-ul trebuie sa fie in format: ZZ-LL-AAAA, e.g. 23-04-2016");
+										? "ITP end date must be of format DD.MM.YYYY"
+										: "Data la care expira ITP-ul trebuie sa fie in format: ZZ.LL.AAAA, e.g. 23.04.2016");
 							} catch (IllegalFieldValueException e) {
 								JOptionPane.showMessageDialog(getContentPane(),
 										englishPack ? "ITP end date must be a valid date."
@@ -1196,7 +1202,7 @@ public class ITPManagerGUI extends JFrame {
 					textFieldRegIdEdit.setText(cust.getRegistId());
 					textFieldEmailEdit.setText(cust.getEmail());
 					textFieldPhoneEdit.setText(cust.getPhoneNr());
-					DateTimeFormatter df = DateTimeFormat.forPattern("dd-MM-yyyy");
+					DateTimeFormatter df = DateTimeFormat.forPattern("dd.MM.yyyy");
 					String itpEndDate = df.print(cust.getITPEndDate());
 					textFieldItpEdit.setText(itpEndDate);
 					comboBoxNotifiedEdit.setSelectedIndex(cust.getEmailSent() ? 0 : 1);
@@ -1390,6 +1396,7 @@ public class ITPManagerGUI extends JFrame {
 
 		// Enable the desired one
 		if (visiblePanel.equals("welcome")) {
+			setTitle("ITP Manager");
 			welcomeContentPane.setVisible(true);
 		} else if (visiblePanel.equals("dbView")) {
 			// Populate dbViewTextArea
@@ -1546,7 +1553,7 @@ public class ITPManagerGUI extends JFrame {
 		// Add the rows of customers
 		for (Customer customer : customers) {
 			// Format the ITP end date
-			DateTimeFormatter df = DateTimeFormat.forPattern("dd-MM-yyyy");
+			DateTimeFormatter df = DateTimeFormat.forPattern("dd.MM.yyyy");
 			String itpEndDate = df.print(customer.getITPEndDate());
 
 			fullFormatted += String.format(
