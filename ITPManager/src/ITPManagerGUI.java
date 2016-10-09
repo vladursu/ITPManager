@@ -245,7 +245,8 @@ public class ITPManagerGUI extends JFrame {
 						JOptionPane.showMessageDialog(loginContentPane,
 								englishPack ? "Invalid username and/or password" : "Username si/sau parola incorecte");
 					} else {
-						JOptionPane.showMessageDialog(loginContentPane, "Invalid url (host/database)");
+						JOptionPane.showMessageDialog(loginContentPane, "Invalid url (host/database)\n"+e.getMessage());
+						e.printStackTrace();
 					}
 				}
 
@@ -1549,7 +1550,7 @@ public class ITPManagerGUI extends JFrame {
 		for (int i = 1; i < totalLen; i++) {
 			line += "=";
 		}
-		fullFormatted += line;
+		fullFormatted += line + "\n";
 		// Add the rows of customers
 		for (Customer customer : customers) {
 			// Format the ITP end date
@@ -1557,8 +1558,8 @@ public class ITPManagerGUI extends JFrame {
 			String itpEndDate = df.print(customer.getITPEndDate());
 
 			fullFormatted += String.format(
-					"\n%-" + idLen + "s | %-" + nameLen + "s | %-" + carLen + "s | %-" + regIdLen + "s | %-" + emailLen
-							+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s",
+					"%-" + idLen + "s | %-" + nameLen + "s | %-" + carLen + "s | %-" + regIdLen + "s | %-" + emailLen
+							+ "s | %-" + phoneLen + "s | %-" + itpLen + "s | %-" + sentLen + "s | %-" + commLen + "s\n",
 					customer.getId(), customer.getName(), customer.getCarModel(), customer.getRegistId(),
 					customer.getEmail(), customer.getPhoneNr() == null ? "" : customer.getPhoneNr(), itpEndDate,
 					customer.getEmailSent() ? (englishPack ? "Yes" : "Da") : (englishPack ? "No" : "Nu"),
